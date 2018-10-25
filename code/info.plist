@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>idealsense.alfred.smzdm</string>
+	<string>idealsense.alfred.maimaimai</string>
 	<key>category</key>
 	<string>Tools</string>
 	<key>connections</key>
@@ -25,11 +25,11 @@
 	<key>createdby</key>
 	<string>nova</string>
 	<key>description</key>
-	<string>什么值得买搜索</string>
+	<string>优惠搜索，礼品推荐</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>什么值得买</string>
+	<string>买买买</string>
 	<key>objects</key>
 	<array>
 		<dict>

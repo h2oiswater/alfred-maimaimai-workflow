@@ -13,14 +13,39 @@ def parseContent(content):
     title = content.find("div", "zm-card-title")
     price = content.find("div", "card-price")
     a = content.find("a")
-    if label != None and label.get_text().encode('utf8') == '国内':
-        return {
-            "title": price.get_text().strip(),
-            "price": title.get_text(),
-            "url": a.attrs['href']
-        }
+    if label != None:
+        if label.get_text().encode('utf8') == '国内' or label.get_text().encode('utf8') == '跨境':
+            return {
+                "title": title.get_text(),
+                "price": price.get_text().strip(),
+                "url": 'https://' + a.attrs['href'][4:]
+            }
+        else:
+            return None
     else:
         return None
+
+def parseMGPYHContent(content):
+    title = content.find("img", "pull-left item-thumbnail")
+    price = content.find("em", "number")
+    a = content.find("a")
+    return {
+        "title": title.attrs['alt'],
+        "price": price.get_text(),
+        "url": "https://www.mgpyh.com" + a.attrs['href']
+    }
+
+def parseMGPYHHtml(html):
+    list = []
+    #转换为BeautifulSoup对象
+    bsObj = BeautifulSoup(html)
+    contentArray = bsObj.findAll("div", "content-item")
+
+    for content in contentArray:
+        result = parseMGPYHContent(content)
+        if result != None:
+            list.append(result)
+    return list
         
 
 def parseHtml(html):
@@ -33,6 +58,37 @@ def parseHtml(html):
         if result != None:
             list.append(result)
     return list
+
+def searchMGPYH(searchKey):
+    data = web.get(url="https://www.mgpyh.com/search/", params={
+        "q": searchKey
+    }, headers={
+        "Accept": "*/*",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Mobile Safari/537.36",
+        "Host": "www.mgpyh.com"
+    }, cookies=None, auth=None,
+        timeout=60, allow_redirects=True, stream=False)
+    
+    if data.status_code == 200:
+        return parseMGPYHHtml(data.text)
+    else:
+        return []
+
+def searchSMZDM(searchKey):
+    data = web.get(url="https://search.m.smzdm.com", params={
+        "s": searchKey,
+        "v": "b"
+    }, headers={
+        "Accept": "*/*",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Mobile Safari/537.36",
+        "Host": "search.m.smzdm.com",
+        "Referer": "https://search.m.smzdm.com/"
+    }, cookies=None, auth=None,
+        timeout=60, allow_redirects=True, stream=False)
+    if data.status_code == 200:
+        return parseHtml(data.text)
+    else:
+        return []
 
 
 def main(wf):
@@ -53,36 +109,31 @@ def main(wf):
     
     # Do stuff here ...
     searchKey = args[0]
-
-    data = web.get(url="https://search.m.smzdm.com", params={
-        "s": searchKey,
-        "v": "b"
-    }, headers={
-        "Accept": "*/*",
-        "User-Agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Mobile Safari/537.36",
-        "Host": "search.m.smzdm.com",
-        "Referer": "https://search.m.smzdm.com/"
-    }, cookies=None, auth=None,
-        timeout=60, allow_redirects=True, stream=False)
     
-    if data.status_code == 200:
-        list = parseHtml(data.text)
-        for item in list:
-            wf.add_item(title=item['title'],
-                    subtitle=item['price'],
-                    valid=True,
-                    arg='https://' + item['url'][4:])
+    # if data.status_code == 200:
+    listMGPYH = searchMGPYH(searchKey)
+    # if len(listMGPYH) >= 10:
+    #     listMGPYH = listMGPYH[0:10]
+    listSMZDM = searchSMZDM(searchKey)
+    # if len(listSMZDM) >= 5:
+    #     listSMZDM = listSMZDM[0:5]
+    list = listSMZDM + listMGPYH
+    for item in list:
+        wf.add_item(title=item['title'],
+                subtitle=item['price'],
+                valid=True,
+                arg=item['url'])
         # Add an item to Alfred feedback
         # wf.add_item(title=searchKey,
         #             subtitle='subtitle1',
         #             valid=True,
         #             arg='https://www.baidu.com')
-    else:
-        # Add an item to Alfred feedback
-        wf.add_item(title='failed',
-                    subtitle='subtitle1',
-                    valid=True,
-                    arg='https://www.baidu.com')
+    # else:
+    #     # Add an item to Alfred feedback
+    #     wf.add_item(title='failed',
+    #                 subtitle='subtitle1',
+    #                 valid=True,
+    #                 arg='https://www.baidu.com')
 
     
 
