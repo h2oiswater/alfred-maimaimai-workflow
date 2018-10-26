@@ -8,6 +8,10 @@
 
 输入关键字自动到多个优惠网站去搜索商品信息。
 
+### 下载
+
+#### []Realease](https://github.com/h2oiswater/alfred-maimaimai-workflow/releases)页面下载
+
 ### To do
 
 - [x] 初版 2018-10-25
