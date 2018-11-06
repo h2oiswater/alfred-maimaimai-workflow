@@ -29,6 +29,8 @@ def parseMGPYHContent(content):
     title = content.find("img", "pull-left item-thumbnail")
     price = content.find("em", "number")
     a = content.find("a")
+    if title == None or price == None or a == None:
+        return None
     return {
         "title": title.attrs['alt'],
         "price": price.get_text(),
